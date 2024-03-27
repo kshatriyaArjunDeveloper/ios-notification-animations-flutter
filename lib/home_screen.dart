@@ -15,7 +15,7 @@ class _HomeScreenState extends State<HomeScreen> {
   ScrollController controller = ScrollController();
 
   /// Total list items that are scrolled
-  double listItemsScrolled = 0;
+  double listItemsScrolled = 1.35;
 
   /// Height of view above list
   double customUiHeight = 0;
@@ -32,26 +32,9 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
 
-    // list length - 1 takes out the Custom UI
-    // -1 takes out first visible notification item
-    // ratioScrolledExtra takes out the scrolled item
-    // 0.4 for last item animation
-    final double totalInvisibleNotifications =
-        listLength - 1 - 1 - ratioScrolledExtra + 0.4;
-
-    // Calculate total height of invisible items
-    // itemHeight * 0.4 is extra padding for completing last item animation
-    // itemHeight * (listLength - 1) is total height of all items except first
-    double invisibleItemsTotalHeight = itemHeight * totalInvisibleNotifications;
-
-    // Jump to start from above
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      controller.jumpTo(invisibleItemsTotalHeight);
-    });
-
-    _addNotificationListListener(
-      invisibleItemsTotalHeight,
-    );
+    double invisibleItemsTotalHeight =
+        itemHeight * (listLength - 1) - itemHeight * 0.6;
+    _addNotificationListListener();
   }
 
   @override
@@ -68,7 +51,6 @@ class _HomeScreenState extends State<HomeScreen> {
             return ListView.builder(
               controller: controller,
               itemCount: listLength,
-              reverse: true,
               padding: EdgeInsets.only(
                 bottom: itemHeight * 0.4,
               ),
@@ -90,7 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
       color: Colors.indigo,
       child: const Center(
         child: Text(
-          'Custom UI above list 7th item',
+          'Custom UI above list',
           style: TextStyle(
             color: Colors.white,
             fontSize: 20,
@@ -102,20 +84,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // FUNCTIONS TO HANDLE NOTIFICATION LIST SCROLL
 
-  void _addNotificationListListener(
-    double invisibleItemsTotalHeight,
-  ) {
-    double scrolledDownwards = 0;
+  void _addNotificationListListener() {
     controller.addListener(() {
       setState(() {
-        double totalScrolled = (invisibleItemsTotalHeight - controller.offset);
-        scrolledDownwards = totalScrolled > 0 ? totalScrolled : 0;
-        // Calculating scroll ratio after initial setup
-        final double afterInitialScroll = scrolledDownwards / itemHeight;
-        // +1 because of first list item and + ratioScrolledExtra for secondList
-        listItemsScrolled = afterInitialScroll + 1 + ratioScrolledExtra;
-        // Rounding off to 2 decimal places
-        listItemsScrolled = double.parse(listItemsScrolled.toStringAsFixed(2));
+        listItemsScrolled = (controller.offset / itemHeight) + 1.35;
+        print('Controller offset: ${controller.offset}');
         print('Items Scrolled: $listItemsScrolled');
       });
     });
@@ -124,9 +97,9 @@ class _HomeScreenState extends State<HomeScreen> {
   // FUNCTIONS TO BUILD NOTIFICATION ITEM
 
   Widget _buildListItem(int index) {
-    final bool isFirstItemFromAbove = index == (listLength - 1);
+    final bool isFirstItem = index == 0;
 
-    if (isFirstItemFromAbove) {
+    if (isFirstItem) {
       return _buildUiAboveList();
     } else {
       return _buildAnimatingNotificationItem(
@@ -135,26 +108,27 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Widget _buildAnimatingNotificationItem(int index) {
-    final bool isFirstItem = index == (listLength - 2);
-    int reverseIndex = listLength - index - 1;
+  Widget _buildAnimatingNotificationItem(
+    int index,
+  ) {
+    final bool isFirstItem = index == 1;
     late final double scale;
     late final double opacity;
     late final double height;
 
-    final bool hasItemScrolledFully = reverseIndex <= (listItemsScrolled - 1);
+    final bool hasItemScrolledFully = index <= (listItemsScrolled - 1);
     if (hasItemScrolledFully) {
       scale = 1;
       opacity = 1;
       height = itemHeight;
     } else {
-      final bool isGapMoreThenOneItem = (reverseIndex - listItemsScrolled) > 1;
+      final bool isGapMoreThenOneItem = (index - listItemsScrolled) > 1;
       if (isGapMoreThenOneItem) {
         scale = 0;
         opacity = 0;
         height = 0;
       } else {
-        double partiallyScrolled = (reverseIndex - 1 - listItemsScrolled).abs();
+        double partiallyScrolled = (index - 1 - listItemsScrolled).abs();
 
         scale = isFirstItem ? 1.0 : scaleFactor(partiallyScrolled);
         opacity = isFirstItem ? 1.0 : opacityFactor(partiallyScrolled);
@@ -174,7 +148,7 @@ class _HomeScreenState extends State<HomeScreen> {
             fit: BoxFit.none,
             alignment: Alignment.bottomCenter,
             child: Opacity(
-              opacity: opacity,
+              opacity: 1,
               child: Transform(
                 transform: Matrix4.identity()..scale(scale, scale),
                 alignment: Alignment.bottomCenter,
@@ -192,7 +166,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget buildItemContent(int index) {
     return NotificationCard(
-      notificationId: index + 1,
+      notificationId: index,
     );
   }
 
