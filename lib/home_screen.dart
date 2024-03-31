@@ -14,19 +14,15 @@ class _HomeScreenState extends State<HomeScreen> {
   // NOTIFICATION SCROLL VARS
   ScrollController controller = ScrollController();
 
-  /// Total list items that are scrolled
-  double listItemsScrolled = 0;
-
   /// Height of view above list
   double customUiHeight = 0;
 
   /// Total list of items in list, includes Custom UI above list
   /// 6 notification + 1 Custom UI
-  int listLength = 6 + 1;
+  int listLength = 6;
 
   // List item height + padding
-  final double itemHeight = 80 + 12;
-  final double ratioScrolledExtra = 0.35;
+  final double itemHeight = 100;
 
   @override
   void initState() {
@@ -34,24 +30,16 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // list length - 1 takes out the Custom UI
     // -1 takes out first visible notification item
-    // ratioScrolledExtra takes out the scrolled item
-    // 0.4 for last item animation
-    final double totalInvisibleNotifications =
-        listLength - 1 - 1 - ratioScrolledExtra + 0.4;
+    // -0.3 takes out for the second item which is partially visible
+    final double totalInvisibleNotifications = listLength - 2.3;
 
     // Calculate total height of invisible items
-    // itemHeight * 0.4 is extra padding for completing last item animation
-    // itemHeight * (listLength - 1) is total height of all items except first
     double invisibleItemsTotalHeight = itemHeight * totalInvisibleNotifications;
 
     // Jump to start from above
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       controller.jumpTo(invisibleItemsTotalHeight);
     });
-
-    _addNotificationListListener(
-      invisibleItemsTotalHeight,
-    );
   }
 
   @override
@@ -59,19 +47,32 @@ class _HomeScreenState extends State<HomeScreen> {
     return SafeArea(
       child: Scaffold(
         backgroundColor: Colors.white70,
+        appBar: AppBar(
+          title: const Text('Dynamic Height and Visibility App Bar'),
+        ),
+        bottomNavigationBar: Container_(
+          height: 50,
+          color: Colors.white10,
+          child: const Center(
+            child: Text(
+              'Dynamic Height and Visibility Bottom Bar',
+              style: TextStyle(
+                fontSize: 20,
+              ),
+            ),
+          ),
+        ),
         body: LayoutBuilder(
           builder: (
             BuildContext context,
             BoxConstraints constraints,
           ) {
-            customUiHeight = constraints.maxHeight;
+            customUiHeight = constraints.maxHeight - itemHeight * (1.3);
             return ListView.builder(
               controller: controller,
               itemCount: listLength,
               reverse: true,
-              padding: EdgeInsets.only(
-                bottom: itemHeight * 0.4,
-              ),
+              padding: EdgeInsets.zero,
               itemBuilder: (context, index) {
                 return _buildListItem(index);
               },
@@ -83,14 +84,12 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildUiAboveList() {
-    final double height =
-        customUiHeight - (itemHeight * (1 + ratioScrolledExtra));
     return Container_(
-      height: height,
+      height: customUiHeight,
       color: Colors.indigo,
       child: const Center(
         child: Text(
-          'Custom UI above list 7th item',
+          'Custom Height Indigo Box',
           style: TextStyle(
             color: Colors.white,
             fontSize: 20,
@@ -100,28 +99,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // FUNCTIONS TO HANDLE NOTIFICATION LIST SCROLL
-
-  void _addNotificationListListener(
-    double invisibleItemsTotalHeight,
-  ) {
-    double scrolledDownwards = 0;
-    controller.addListener(() {
-      setState(() {
-        double totalScrolled = (invisibleItemsTotalHeight - controller.offset);
-        scrolledDownwards = totalScrolled > 0 ? totalScrolled : 0;
-        // Calculating scroll ratio after initial setup
-        final double afterInitialScroll = scrolledDownwards / itemHeight;
-        // +1 because of first list item and + ratioScrolledExtra for secondList
-        listItemsScrolled = afterInitialScroll + 1 + ratioScrolledExtra;
-        // Rounding off to 2 decimal places
-        listItemsScrolled = double.parse(listItemsScrolled.toStringAsFixed(2));
-        print('Items Scrolled: $listItemsScrolled');
-      });
-    });
-  }
-
-  // FUNCTIONS TO BUILD NOTIFICATION ITEM
 
   Widget _buildListItem(int index) {
     final bool isFirstItemFromAbove = index == (listLength - 1);
@@ -129,116 +106,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (isFirstItemFromAbove) {
       return _buildUiAboveList();
     } else {
-      return _buildAnimatingNotificationItem(
-        index,
-      );
+      return const NotificationCard();
     }
-  }
-
-  Widget _buildAnimatingNotificationItem(int index) {
-    final bool isFirstItem = index == (listLength - 2);
-    int reverseIndex = listLength - index - 1;
-    late final double scale;
-    late final double opacity;
-    late final double height;
-
-    final bool hasItemScrolledFully = reverseIndex <= (listItemsScrolled - 1);
-    if (hasItemScrolledFully) {
-      scale = 1;
-      opacity = 1;
-      height = itemHeight;
-    } else {
-      final bool isGapMoreThenOneItem = (reverseIndex - listItemsScrolled) > 1;
-      if (isGapMoreThenOneItem) {
-        scale = 0;
-        opacity = 0;
-        height = 0;
-      } else {
-        double partiallyScrolled = (reverseIndex - 1 - listItemsScrolled).abs();
-
-        scale = isFirstItem ? 1.0 : scaleFactor(partiallyScrolled);
-        opacity = isFirstItem ? 1.0 : opacityFactor(partiallyScrolled);
-        height = isFirstItem
-            ? itemHeight
-            : heightFactor(partiallyScrolled) * itemHeight;
-      }
-    }
-
-    return SizedBox(
-      height: itemHeight,
-      child: UnconstrainedBox(
-        alignment: Alignment.topCenter,
-        child: SizedBox(
-          height: height,
-          child: FittedBox(
-            fit: BoxFit.none,
-            alignment: Alignment.bottomCenter,
-            child: Opacity(
-              opacity: opacity,
-              child: Transform(
-                transform: Matrix4.identity()..scale(scale, scale),
-                alignment: Alignment.bottomCenter,
-                child: Padding_(
-                  bottomPadding: 12,
-                  child: buildItemContent(index),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget buildItemContent(int index) {
-    return NotificationCard(
-      notificationId: index + 1,
-    );
-  }
-
-  // FUNCTIONS TO MAKE NOTIFICATION ITEM ANIMATE
-
-  double scaleFactor(
-    double partiallyScrolled,
-  ) {
-    double scale = 0;
-    if (partiallyScrolled < 0.7) {
-      scale = 0.9;
-    } else if (partiallyScrolled < 1.4) {
-      scale = 0.9 + 0.1 * ((partiallyScrolled - 0.7) / 0.7);
-    } else {
-      return 1;
-    }
-    return scale;
-  }
-
-  double heightFactor(double partiallyScrolled) {
-    double scale = 0;
-    if (partiallyScrolled <= 0.34) {
-      scale = 0.1;
-    } else if (partiallyScrolled < 0.9) {
-      scale = 0.1 + 0.7 * ((partiallyScrolled - 0.34) / 0.56);
-    } else if (partiallyScrolled < 1.4) {
-      scale = 0.8 + 0.2 * ((partiallyScrolled - 0.9) / 0.5);
-    } else {
-      return 1;
-    }
-    return scale;
-  }
-
-  double opacityFactor(
-    double partiallyScrolled,
-  ) {
-    double opacity = 1;
-    if (partiallyScrolled <= 0.34) {
-      opacity = 0;
-    } else if (partiallyScrolled < 0.9) {
-      opacity = 0.2 + 0.3 * ((partiallyScrolled - 0.34) / 0.56);
-    } else if (partiallyScrolled < 1.4) {
-      opacity = 0.5 + 0.5 * ((partiallyScrolled - 0.9) / 0.5);
-    } else {
-      return 1;
-    }
-    return opacity;
   }
 }
