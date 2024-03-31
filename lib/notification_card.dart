@@ -12,16 +12,17 @@ class NotificationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container_(
-      height: 80,
+      height: 100,
       color: Colors.white,
-      allCornerRadius: 16,
-      allPadding: 16,
-      width: MediaQuery.of(context).size.width - 40,
-      child: Text(
-        'Notification $notificationId',
-        style: const TextStyle(
-          color: Colors.black,
-          fontSize: 16,
+      borderColor: Colors.black,
+      width: MediaQuery.of(context).size.width,
+      child: Center(
+        child: Text(
+          'List Item $notificationId',
+          style: const TextStyle(
+            color: Colors.black,
+            fontSize: 16,
+          ),
         ),
       ),
     );
