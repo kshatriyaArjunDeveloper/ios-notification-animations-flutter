@@ -59,6 +59,8 @@ class _HomeScreenState extends State<HomeScreen> {
     return SafeArea(
       child: Scaffold(
         backgroundColor: Colors.white70,
+        appBar: _buildAppBar(),
+        bottomNavigationBar: _buildBottomNav(),
         body: LayoutBuilder(
           builder: (
             BuildContext context,
@@ -84,16 +86,39 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildUiAboveList() {
     final double height =
-        customUiHeight - (itemHeight * (1 + ratioScrolledExtra));
+        customUiHeight - (itemHeight * (1 + ratioScrolledExtra)) - 10;
     return Container_(
       height: height,
+      bottomMargin: 10,
       color: Colors.indigo,
       child: const Center(
         child: Text(
-          'Custom UI above list 7th item',
+          'Custom UI',
           style: TextStyle(
             color: Colors.white,
             fontSize: 20,
+          ),
+        ),
+      ),
+    );
+  }
+
+  AppBar _buildAppBar() {
+    return AppBar(
+      title: const Text('Notification List'),
+    );
+  }
+
+  Container_ _buildBottomNav() {
+    return Container_(
+      height: 50,
+      color: Colors.lightBlue,
+      child: const Center(
+        child: Text(
+          'Bottom Nav',
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 16,
           ),
         ),
       ),
@@ -142,17 +167,21 @@ class _HomeScreenState extends State<HomeScreen> {
     late final double opacity;
     late final double height;
 
+    late final String text;
+
     final bool hasItemScrolledFully = reverseIndex <= (listItemsScrolled - 1);
     if (hasItemScrolledFully) {
       scale = 1;
       opacity = 1;
       height = itemHeight;
+      text = '';
     } else {
       final bool isGapMoreThenOneItem = (reverseIndex - listItemsScrolled) > 1;
       if (isGapMoreThenOneItem) {
         scale = 0;
         opacity = 0;
         height = 0;
+        text = '';
       } else {
         double partiallyScrolled = (reverseIndex - 1 - listItemsScrolled).abs();
 
@@ -161,6 +190,7 @@ class _HomeScreenState extends State<HomeScreen> {
         height = isFirstItem
             ? itemHeight
             : heightFactor(partiallyScrolled) * itemHeight;
+        text = '';
       }
     }
 
@@ -180,7 +210,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 alignment: Alignment.bottomCenter,
                 child: Padding_(
                   bottomPadding: 12,
-                  child: buildItemContent(index),
+                  child: buildItemContent(
+                    reverseIndex,
+                    text,
+                  ),
                 ),
               ),
             ),
@@ -190,9 +223,13 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget buildItemContent(int index) {
+  Widget buildItemContent(
+    int index,
+    String text,
+  ) {
     return NotificationCard(
-      notificationId: index + 1,
+      notificationId: index,
+      text: '',
     );
   }
 
