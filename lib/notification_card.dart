@@ -3,10 +3,12 @@ import 'package:quickui/quickui.dart';
 
 class NotificationCard extends StatelessWidget {
   final int notificationId;
+  final String text;
 
   const NotificationCard({
     super.key,
     required this.notificationId,
+    required this.text,
   });
 
   @override
@@ -18,7 +20,7 @@ class NotificationCard extends StatelessWidget {
       width: MediaQuery.of(context).size.width,
       child: Center(
         child: Text(
-          'List Item $notificationId',
+          'List Item $notificationId\n$text',
           style: const TextStyle(
             color: Colors.black,
             fontSize: 16,

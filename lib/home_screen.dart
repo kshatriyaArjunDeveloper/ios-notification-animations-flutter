@@ -11,13 +11,47 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  // UI VARS
+  late final double screenHeight;
+  double listItemsScrolled = 0;
+
+  // NOTIFICATION SCROLL VARS
+  ScrollController controller = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Add listener to the controller
+    controller.addListener(() {
+      setState(() {
+        listItemsScrolled =
+            double.parse((controller.offset / 100).toStringAsFixed(2));
+        print('Controller offset: ${controller.offset}');
+        print('Items Scrolled: $listItemsScrolled');
+      });
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    try {
+      screenHeight = MediaQuery.of(context).size.height -
+          MediaQuery.of(context).padding.top -
+          MediaQuery.of(context).padding.bottom;
+    } catch (e) {
+      print('Error: $e');
+    }
+    super.didChangeDependencies();
+  }
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
         body: ListView.builder(
-          itemCount: 7,
+          controller: controller,
+          itemCount: 20,
           itemBuilder: (context, index) {
             return _buildListItem(index);
           },
@@ -40,7 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildUiAboveList() {
     return Container_(
-      height: 600,
+      height: screenHeight,
       color: Colors.indigo,
       child: const Center(
         child: Text(
@@ -57,6 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildItemContent(int index) {
     return NotificationCard(
       notificationId: index,
+      text: 'Scroll Info: $listItemsScrolled',
     );
   }
 }
