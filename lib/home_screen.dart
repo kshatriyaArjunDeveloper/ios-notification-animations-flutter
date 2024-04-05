@@ -107,42 +107,76 @@ class _HomeScreenState extends State<HomeScreen> {
         // Show partial item
         double itemScrolled = double.parse(
             ((index - 1 - listItemsScrolled).abs()).toStringAsFixed(2));
+        double scale = scaleFactor(itemScrolled);
 
-        final double scale = itemScrolled;
-        return Opacity(
-          opacity: itemScrolled,
-          child: Transform(
-            transform: Matrix4.identity()..scale(scale, scale),
-            alignment: Alignment.bottomCenter,
-            child: NotificationCard(
-              notificationId: index,
-              text:
-                  'Scroll Info: $listItemsScrolled\nItem Scrolled: $itemScrolled',
+        return SizedBox(
+          height: 100,
+          child: UnconstrainedBox(
+            alignment: Alignment.topCenter,
+            child: SizedBox(
+              height: heightFactor(itemScrolled) * 100,
+              child: FittedBox(
+                fit: BoxFit.none,
+                alignment: Alignment.bottomCenter,
+                child: Opacity(
+                  opacity: opacityFactor(itemScrolled),
+                  child: Transform(
+                    transform: Matrix4.identity()..scale(scale, scale),
+                    alignment: Alignment.bottomCenter,
+                    child: NotificationCard(
+                      notificationId: index,
+                      text:
+                          'Scroll Info: $listItemsScrolled\nItem Scrolled: $itemScrolled',
+                    ),
+                  ),
+                ),
+              ),
             ),
           ),
         );
       }
     }
-    return NotificationCard(
-      notificationId: index,
-      text:
-          'Scroll Info: $listItemsScrolled\nItem Scrolled: $hasItemScrolledFully',
-    );
   }
+
+  // FUNCTIONS TO MAKE NOTIFICATION ITEM ANIMATE
 
   double opacityFactor(
     double partiallyScrolled,
   ) {
     double opacity = 1;
-    if (partiallyScrolled <= 0.34) {
-      opacity = 0;
-    } else if (partiallyScrolled < 0.9) {
-      opacity = 0.2 + 0.3 * ((partiallyScrolled - 0.34) / 0.56);
-    } else if (partiallyScrolled < 1.4) {
-      opacity = 0.5 + 0.5 * ((partiallyScrolled - 0.9) / 0.5);
+    if (partiallyScrolled <= 0.3) {
+      opacity = 0.5;
+    } else if (partiallyScrolled < 1) {
+      opacity = 0.5 + 0.5 * ((partiallyScrolled - 0.3) / 0.7);
     } else {
       return 1;
     }
     return opacity;
+  }
+
+  double scaleFactor(
+    double partiallyScrolled,
+  ) {
+    double scale = 0.8;
+    if (partiallyScrolled <= 0.3) {
+      scale = 0.8;
+    } else if (partiallyScrolled < 1) {
+      scale = 0.8 + 0.2 * ((partiallyScrolled - 0.3) / 0.7);
+    } else {
+      return 1;
+    }
+    return scale;
+  }
+
+  double heightFactor(double partiallyScrolled) {
+    double scale = 0;
+    if (partiallyScrolled <= 0.3) {
+      scale = 0;
+    } else if (partiallyScrolled < 1) {
+      scale = 0.3 + 0.7 * ((partiallyScrolled - 0.3) / 0.7);
+    } else {
+      return 1;
+    }
+    return scale;
   }
 }

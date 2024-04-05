@@ -16,13 +16,13 @@ class NotificationCard extends StatelessWidget {
     return Container_(
       height: 100,
       allPadding: 10,
-      color: Colors.amberAccent,
-      borderColor: Colors.black,
+      color: Colors.black,
+      borderColor: Colors.white,
       width: MediaQuery.of(context).size.width,
       child: Text(
         'List Item $notificationId\n$text',
         style: const TextStyle(
-          color: Colors.black,
+          color: Colors.white,
           fontSize: 16,
           fontWeight: FontWeight.bold,
         ),
