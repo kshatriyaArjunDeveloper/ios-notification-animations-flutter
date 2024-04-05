@@ -89,9 +89,60 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildItemContent(int index) {
+    final bool hasItemScrolledFully = index <= (listItemsScrolled);
+    // Show full item
+    if (hasItemScrolledFully) {
+      return NotificationCard(
+        notificationId: index,
+        text: 'Scroll Info: $listItemsScrolled\nItem Scrolled',
+      );
+    } else {
+      // Hide item
+      final bool isGapMoreThenOneItem = (index - listItemsScrolled) > 1;
+      if (isGapMoreThenOneItem) {
+        return const SizedBox(
+          height: 100,
+        );
+      } else {
+        // Show partial item
+        double itemScrolled = double.parse(
+            ((index - 1 - listItemsScrolled).abs()).toStringAsFixed(2));
+
+        final double scale = itemScrolled;
+        return Opacity(
+          opacity: itemScrolled,
+          child: Transform(
+            transform: Matrix4.identity()..scale(scale, scale),
+            alignment: Alignment.bottomCenter,
+            child: NotificationCard(
+              notificationId: index,
+              text:
+                  'Scroll Info: $listItemsScrolled\nItem Scrolled: $itemScrolled',
+            ),
+          ),
+        );
+      }
+    }
     return NotificationCard(
       notificationId: index,
-      text: 'Scroll Info: $listItemsScrolled',
+      text:
+          'Scroll Info: $listItemsScrolled\nItem Scrolled: $hasItemScrolledFully',
     );
+  }
+
+  double opacityFactor(
+    double partiallyScrolled,
+  ) {
+    double opacity = 1;
+    if (partiallyScrolled <= 0.34) {
+      opacity = 0;
+    } else if (partiallyScrolled < 0.9) {
+      opacity = 0.2 + 0.3 * ((partiallyScrolled - 0.34) / 0.56);
+    } else if (partiallyScrolled < 1.4) {
+      opacity = 0.5 + 0.5 * ((partiallyScrolled - 0.9) / 0.5);
+    } else {
+      return 1;
+    }
+    return opacity;
   }
 }
