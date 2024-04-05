@@ -12,8 +12,12 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   // UI VARS
+
   late final double screenHeight;
   final double itemHeight = 100;
+
+  /// Height of view above list
+  double customUiHeight = 0;
 
   // NOTIFICATION SCROLL VARS
   ScrollController controller = ScrollController();
@@ -59,31 +63,49 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   @override
-  void didChangeDependencies() {
-    try {
-      screenHeight = MediaQuery.of(context).size.height -
-          MediaQuery.of(context).padding.top -
-          MediaQuery.of(context).padding.bottom;
-    } catch (e) {
-      print('Error: $e');
-    }
-    super.didChangeDependencies();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        body: ListView.builder(
-          controller: controller,
-          padding: EdgeInsets.zero,
-          reverse: true,
-          itemCount: listLength,
-          itemBuilder: (context, index) {
-            return _buildListItem(index);
-          },
+        appBar: _buildAppBar(),
+        bottomNavigationBar: _buildBottomNav(),
+        body: LayoutBuilder(builder: (
+          BuildContext context,
+          BoxConstraints constraints,
+        ) {
+          customUiHeight = constraints.maxHeight;
+          return ListView.builder(
+            controller: controller,
+            padding: EdgeInsets.zero,
+            reverse: true,
+            itemCount: listLength,
+            itemBuilder: (context, index) {
+              return _buildListItem(index);
+            },
+          );
+        }),
+      ),
+    );
+  }
+
+  Container_ _buildBottomNav() {
+    return Container_(
+      height: 50,
+      color: Colors.lightBlue,
+      child: const Center(
+        child: Text(
+          'Bottom Nav',
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 16,
+          ),
         ),
       ),
+    );
+  }
+
+  AppBar _buildAppBar() {
+    return AppBar(
+      title: const Text('Notification List'),
     );
   }
 
@@ -101,7 +123,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildUiAboveList() {
     return Container_(
-      height: screenHeight - 10,
+      height: customUiHeight - 10,
       bottomMargin: 10,
       color: Colors.indigo,
       child: const Center(
