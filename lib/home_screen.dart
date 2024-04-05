@@ -12,7 +12,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   // UI VARS
-
   late final double screenHeight;
   final double itemHeight = 100;
 
@@ -21,7 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // NOTIFICATION SCROLL VARS
   ScrollController controller = ScrollController();
-  double listItemsScrolled = 0;
+  double listItemsScrolled = 1.35;
   final listLength = 20;
 
   @override
@@ -29,8 +28,8 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
 
     // list length - 1 takes out the Custom UI
-    // ratioScrolledExtra takes out the scrolled item
-    final double totalInvisibleNotifications = listLength - 1;
+    // -1 takes out first visible notification item - 0.35 for second item
+    final double totalInvisibleNotifications = listLength - 1 - 1 - 0.35;
 
     // Calculate total height of invisible items
     // itemHeight * (listLength - 1) is total height of all items except first
@@ -44,6 +43,7 @@ class _HomeScreenState extends State<HomeScreen> {
     // Add listener to the controller
     double scrolledDownwards = 0;
 
+    // Scroll listener
     controller.addListener(() {
       setState(() {
         double totalScrolled = (invisibleItemsTotalHeight - controller.offset);
@@ -52,6 +52,9 @@ class _HomeScreenState extends State<HomeScreen> {
         // Calculating scroll ratio after initial setup
         final double afterInitialScroll = scrolledDownwards / itemHeight;
         listItemsScrolled = afterInitialScroll;
+
+        // +1 because of first list item and + ratioScrolledExtra for secondList
+        listItemsScrolled = afterInitialScroll + 1 + 0.35;
 
         // Rounding off to 2 decimal places
         listItemsScrolled = double.parse(listItemsScrolled.toStringAsFixed(2));
@@ -123,7 +126,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildUiAboveList() {
     return Container_(
-      height: customUiHeight - 10,
+      height: customUiHeight - 10 - (itemHeight * (1 + 0.35)),
       bottomMargin: 10,
       color: Colors.indigo,
       child: const Center(
