@@ -13,20 +13,45 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   // UI VARS
   late final double screenHeight;
-  double listItemsScrolled = 0;
+  final double itemHeight = 100;
 
   // NOTIFICATION SCROLL VARS
   ScrollController controller = ScrollController();
+  double listItemsScrolled = 0;
+  final listLength = 20;
 
   @override
   void initState() {
     super.initState();
 
+    // list length - 1 takes out the Custom UI
+    // ratioScrolledExtra takes out the scrolled item
+    final double totalInvisibleNotifications = listLength - 1;
+
+    // Calculate total height of invisible items
+    // itemHeight * (listLength - 1) is total height of all items except first
+    double invisibleItemsTotalHeight = itemHeight * totalInvisibleNotifications;
+
+    // Jump to start from above
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      controller.jumpTo(invisibleItemsTotalHeight);
+    });
+
     // Add listener to the controller
+    double scrolledDownwards = 0;
+
     controller.addListener(() {
       setState(() {
-        listItemsScrolled =
-            double.parse((controller.offset / 100).toStringAsFixed(2));
+        double totalScrolled = (invisibleItemsTotalHeight - controller.offset);
+        scrolledDownwards = totalScrolled > 0 ? totalScrolled : 0;
+
+        // Calculating scroll ratio after initial setup
+        final double afterInitialScroll = scrolledDownwards / itemHeight;
+        listItemsScrolled = afterInitialScroll;
+
+        // Rounding off to 2 decimal places
+        listItemsScrolled = double.parse(listItemsScrolled.toStringAsFixed(2));
+
         print('Controller offset: ${controller.offset}');
         print('Items Scrolled: $listItemsScrolled');
       });
@@ -51,7 +76,9 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Scaffold(
         body: ListView.builder(
           controller: controller,
-          itemCount: 20,
+          padding: EdgeInsets.zero,
+          reverse: true,
+          itemCount: listLength,
           itemBuilder: (context, index) {
             return _buildListItem(index);
           },
@@ -61,9 +88,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildListItem(int index) {
-    final bool isFirstItem = index == 0;
+    final bool isFirstItemFromAbove = index == (listLength - 1);
 
-    if (isFirstItem) {
+    if (isFirstItemFromAbove) {
       return _buildUiAboveList();
     } else {
       return _buildItemContent(
@@ -89,32 +116,34 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildItemContent(int index) {
-    final bool hasItemScrolledFully = index <= (listItemsScrolled);
+    int reverseIndex = listLength - index - 1;
+
+    final bool hasItemScrolledFully = reverseIndex <= (listItemsScrolled);
     // Show full item
     if (hasItemScrolledFully) {
       return NotificationCard(
-        notificationId: index,
+        notificationId: reverseIndex,
         text: 'Scroll Info: $listItemsScrolled\nItem Scrolled',
       );
     } else {
       // Hide item
-      final bool isGapMoreThenOneItem = (index - listItemsScrolled) > 1;
+      final bool isGapMoreThenOneItem = (reverseIndex - listItemsScrolled) > 1;
       if (isGapMoreThenOneItem) {
-        return const SizedBox(
-          height: 100,
+        return SizedBox(
+          height: itemHeight,
         );
       } else {
         // Show partial item
         double itemScrolled = double.parse(
-            ((index - 1 - listItemsScrolled).abs()).toStringAsFixed(2));
+            ((reverseIndex - 1 - listItemsScrolled).abs()).toStringAsFixed(2));
         double scale = scaleFactor(itemScrolled);
 
         return SizedBox(
-          height: 100,
+          height: itemHeight,
           child: UnconstrainedBox(
             alignment: Alignment.topCenter,
             child: SizedBox(
-              height: heightFactor(itemScrolled) * 100,
+              height: heightFactor(itemScrolled) * itemHeight,
               child: FittedBox(
                 fit: BoxFit.none,
                 alignment: Alignment.bottomCenter,
@@ -124,7 +153,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     transform: Matrix4.identity()..scale(scale, scale),
                     alignment: Alignment.bottomCenter,
                     child: NotificationCard(
-                      notificationId: index,
+                      notificationId: reverseIndex,
                       text:
                           'Scroll Info: $listItemsScrolled\nItem Scrolled: $itemScrolled',
                     ),
