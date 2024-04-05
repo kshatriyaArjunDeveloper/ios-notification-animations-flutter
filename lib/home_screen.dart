@@ -101,7 +101,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildUiAboveList() {
     return Container_(
-      height: screenHeight,
+      height: screenHeight - 10,
+      bottomMargin: 10,
       color: Colors.indigo,
       child: const Center(
         child: Text(
