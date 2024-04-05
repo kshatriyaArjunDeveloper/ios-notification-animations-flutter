@@ -113,10 +113,10 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container_(
       height: 50,
       color: Colors.lightBlue,
-      child: const Center(
+      child: Center(
         child: Text(
-          'Bottom Nav',
-          style: TextStyle(
+          'Scroll Ratio: $listItemsScrolled',
+          style: const TextStyle(
             color: Colors.black,
             fontSize: 16,
           ),
@@ -194,7 +194,8 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
 
-    return SizedBox(
+    return Container_(
+      borderColor: Colors.black,
       height: itemHeight,
       child: UnconstrainedBox(
         alignment: Alignment.topCenter,
